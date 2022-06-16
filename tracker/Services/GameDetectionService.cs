@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -73,80 +72,67 @@ public class GameDetectionService
             return;
         }
 
-        await CheckSteamDataAsync();
-        // TODO: Add support for multiple install paths provided in the .vdf (low prio)
+        //await CheckSteamDataAsync();
+        var libraryPaths = await VdfReader.VdfReader.ReadVdfLibraryPathsAsync(steamPath + "/steamapps/libraryfolders.vdf");
+        var gameDirectories = new List<string>();
 
-        var vdfPath = steamPath + "/steamapps/libraryfolders.vdf";
-        if (!File.Exists(vdfPath))
+        foreach (var path in libraryPaths)
         {
-            _logger.LogWarning("Vdf path did not exist. Cannot automatically detect Steam games.");
-            return;
+            if (Directory.Exists(path + "/steamapps"))
+                gameDirectories.Add(path + "/steamapps/common");
+            else if (Directory.Exists(path + "/common"))
+                gameDirectories.Add(path + "/common");
+            else
+                gameDirectories.Add(path);
         }
 
-        var vdfData = (await VdfReader.VdfReader.ReadVdfDataAsync(steamPath + "/steamapps/libraryfolders.vdf")).ToList();
-        var gameIds = new HashSet<long>();
-        foreach (var key in vdfData.Where(vdf => vdf is not null).SelectMany(vdf => vdf!.apps.Keys))
+        var gameModels = new List<GameModel>();
+        foreach (var dir in gameDirectories)
         {
-            if (long.TryParse(key, out var gameId))
-                gameIds.Add(gameId);
-        }
-
-        var catalogueJson = await File.ReadAllTextAsync("SteamData.json");
-        var steamCatalogueData = JsonSerializer.Deserialize<SteamCatalogue>(catalogueJson);
-
-        if (!vdfData.Any() || steamCatalogueData?.applist is null)
-        {
-            _logger.LogWarning("Failed to load the proper vdfdata or steam catalogue data. Cannot automatically detect games");
-            return;
-        }
-
-        var dbUpdated = false;
-        foreach (var gameId in gameIds)
-        {
-            var steamGame = steamCatalogueData.applist?.apps.FirstOrDefault(x => x?.appid == gameId);
-            if (steamGame is null)
+            var subDirectories = Directory.GetDirectories(dir);
+            foreach (var subDir in subDirectories)
             {
-                _logger.LogWarning("Failed to find {gameId} in steam catalogue.", gameId);
-                continue;
+                var filePaths = Directory.GetFiles(subDir).ToList();
+
+                // Solves the issue where some games hide the files behind a singular folder
+                if (!filePaths.Any() && Directory.GetDirectories(subDir).Length == 1)
+                    filePaths = Directory.GetFiles(Directory.GetDirectories(subDir)[0]).ToList();
+
+                filePaths = filePaths.Where(x => x.Split('.').Last() == "exe" && !x.Contains("Unity")).ToList();
+
+                if (!filePaths.Any())
+                {
+                    _logger.LogInformation("Could not find any .exes for {subDir}", subDir);
+                    continue;
+                }
+
+                var biggestFile = ("", 0L);
+                foreach (var filePath in filePaths)
+                {
+                    var file = new FileInfo(filePath);
+                    var size = file.Length;
+                    if (size > biggestFile.Item2)
+                        biggestFile = (filePath, size);
+                }
+
+                if (string.IsNullOrEmpty(biggestFile.Item1))
+                    continue;
+
+                var gameName = biggestFile.Item1.Split('\\').Last();
+                gameModels.Add(new GameModel { Name = gameName, FilePath = biggestFile.Item1 });
             }
 
-            if (_context.Processes.Any(x => x.Name == steamGame.name + ".exe"))
-                continue;
+            var didDbUpdate = false;
+            foreach (var game in gameModels.Where(game => !context.Processes.Any(x => x.Path == game.FilePath)))
+            {
+                await context.Processes.AddAsync(new TrackedProcess { Name = game.Name, Path = game.FilePath, HoursRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                didDbUpdate = true;
+                _logger.LogInformation("Added executable {exe} to the process list from Steam!", game.Name);
+            }
 
-            await _context.AddAsync(new TrackedProcess { Name = steamGame.name + ".exe", Path = string.Empty, LastAccessed = DateTime.UtcNow.ToString("o")});
-            _logger.LogInformation("Added game {gameName} to the tracking list!", steamGame.name);
-
-            if (!dbUpdated)
-                dbUpdated = true;
+            if (didDbUpdate)
+                await context.SaveChangesAsync();
         }
-
-        if (dbUpdated)
-            await _context.SaveChangesAsync();
-    }
-
-    private async Task CheckSteamDataAsync()
-    {
-        if (File.Exists("SteamData.json"))
-        {
-            var lastWriteTime = File.GetLastWriteTimeUtc("SteamData.json");
-            if ((DateTime.UtcNow - lastWriteTime).TotalDays < 30)
-                return;
-        }
-        else
-            File.Create("SteamData.json");
-
-        using var http = _http;
-        var response = await http.GetAsync("https://api.steampowered.com/ISteamApps/GetAppList/v2?format=json");
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogWarning("Failed to update Steam catalogue.");
-            return;
-        }
-
-        var newSteamData = await response.Content.ReadAsStringAsync();
-        await File.WriteAllTextAsync("SteamData.json", newSteamData);
-
-        _logger.LogInformation("Steam catalogue updated");
     }
 }
 
