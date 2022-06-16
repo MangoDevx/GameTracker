@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -12,11 +11,13 @@ public class GameDetectionService
     private readonly DataContext _context;
     private readonly ILogger<GameDetectionService> _logger;
     private const string RegPath = @"Computer\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Valve\Steam";
+    private readonly HttpClient _http;
 
-    public GameDetectionService(DataContext context, ILogger<GameDetectionService> logger)
+    public GameDetectionService(DataContext context, ILogger<GameDetectionService> logger, HttpClient http)
     {
         _context = context;
         _logger = logger;
+        _http = http;
     }
 
     public async Task StartAutomaticDetectionAsync()
@@ -84,7 +85,7 @@ public class GameDetectionService
         else
             File.Create("SteamData.json");
 
-        using var http = new HttpClient();
+        using var http = _http;
         var response = await http.GetAsync("https://api.steampowered.com/ISteamApps/GetAppList/v2?format=json");
         if (!response.IsSuccessStatusCode)
         {

@@ -18,6 +18,7 @@ using var host = Host.CreateDefaultBuilder(args)
         var cString = context.Configuration.GetConnectionString("Sqlite");
         services
             .AddDbContext<DataContext>(builder => builder.UseSqlite(cString))
+            .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>();
     })
     .Build();
