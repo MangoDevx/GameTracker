@@ -12,6 +12,7 @@ using var host = Host.CreateDefaultBuilder(args)
         logging.SetMinimumLevel(LogLevel.Information);
         logging.AddConsole();
         logging.AddFilter("Microsoft.EntityFrameworkCore.*", LogLevel.Warning);
+        logging.AddFilter("Microsoft.Hosting.*", LogLevel.Warning);
     })
     .ConfigureServices((context, services) =>
     {
@@ -20,11 +21,13 @@ using var host = Host.CreateDefaultBuilder(args)
             .AddDbContext<DataContext>(builder => builder.UseSqlite(cString))
             .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>()
-            .AddScoped<GameDetectionService>();
+            .AddScoped<GameDetectionService>()
+            .AddSingleton<ConsoleService>();
     })
     .Build();
 
 await host.Services.GetRequiredService<DbInitService>().InitializeDatabaseAsync();
 await host.Services.GetRequiredService<GameDetectionService>().StartAutomaticDetectionAsync();
+await host.Services.GetRequiredService<ConsoleService>().RunConsole();
 
 await host.RunAsync();

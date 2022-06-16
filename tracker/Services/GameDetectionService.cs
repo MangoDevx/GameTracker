@@ -25,7 +25,7 @@ public class GameDetectionService
     public async Task StartAutomaticDetectionAsync()
     {
         await GetSteamGamesAsync();
-        _logger.LogInformation("Automatic Steam detection completed.");
+        _logger.LogInformation(">> Automatic Steam detection completed.");
     }
 
     private async Task GetSteamGamesAsync()
@@ -37,13 +37,13 @@ public class GameDetectionService
             var setting = await context.Processes.FirstOrDefaultAsync(x => x.Name == "Steam");
             if (setting is null)
             {
-                _logger.LogWarning("Cannot find Steam in tracked processes unexpectedly. Cannot find Steam games automatically.");
+                _logger.LogWarning(">> Cannot find Steam in tracked processes unexpectedly. Cannot find Steam games automatically.");
                 return;
             }
 
             if (string.IsNullOrEmpty(setting.Path))
             {
-                _logger.LogWarning("Steam found in the tracked processes, but no path is set. Cannot find Steam games automatically.");
+                _logger.LogWarning(">> Steam found in the tracked processes, but no path is set. Cannot find Steam games automatically.");
                 return;
             }
 
@@ -54,21 +54,21 @@ public class GameDetectionService
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             if (!isWindows)
             {
-                _logger.LogWarning("Cannot automatically detect Steam install path on a non-Windows machine. Please use the whitelist feature.");
+                _logger.LogWarning(">> Cannot automatically detect Steam install path on a non-Windows machine. Please use the whitelist feature.");
                 return;
             }
 
             steamPath = (string?)Registry.GetValue(RegPath, "InstallPath", null);
             if (steamPath is null)
             {
-                _logger.LogInformation("No Steam install path detected. Skipping Steam detection");
+                _logger.LogInformation(">> No Steam install path detected. Skipping Steam detection");
                 return;
             }
         }
 
         if (steamPath is null)
         {
-            _logger.LogWarning("Failed to find Steam's install path. Cannot automatically detect Steam games.");
+            _logger.LogWarning(">> Failed to find Steam's install path. Cannot automatically detect Steam games.");
             return;
         }
 
@@ -102,7 +102,7 @@ public class GameDetectionService
 
                 if (!filePaths.Any())
                 {
-                    _logger.LogInformation("Could not find any .exes for {subDir}", subDir);
+                    _logger.LogInformation(">> Could not find any .exes for {subDir}", subDir);
                     continue;
                 }
 
@@ -127,7 +127,7 @@ public class GameDetectionService
             {
                 await context.Processes.AddAsync(new TrackedProcess { Name = game.Name, Path = game.FilePath, HoursRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
                 didDbUpdate = true;
-                _logger.LogInformation("Added executable {exe} to the process list from Steam!", game.Name);
+                _logger.LogInformation(">> Added executable {exe} to the process list from Steam!", game.Name);
             }
 
             if (didDbUpdate)
