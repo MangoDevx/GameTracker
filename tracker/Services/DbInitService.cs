@@ -27,7 +27,7 @@ public class DbInitService
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             if (!isWindows && !context.Processes.Any(x => x.Name == "Steam"))
             {
-                await context.Processes.AddAsync(new TrackedProcess {Name = "Steam", Path = null, Tracking = false});
+                context.Processes.Add(new TrackedProcess {Name = "Steam", Path = null, Tracking = false});
                 _logger.LogWarning("Cannot automatically determine steam path. Please set one if you want to automatically detect Steam games.");
             }
             await context.SaveChangesAsync();

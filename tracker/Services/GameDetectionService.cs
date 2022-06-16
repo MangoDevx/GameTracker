@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using tracker.Database;
 using tracker.Database.DbModels;
-using tracker.Models;
 
 namespace tracker.Services;
 
@@ -86,7 +85,7 @@ public class GameDetectionService
                 gameDirectories.Add(path);
         }
 
-        var gameModels = new List<GameModel>();
+        var gameModels = new List<TrackedProcess>();
         foreach (var dir in gameDirectories)
         {
             var subDirectories = Directory.GetDirectories(dir);
@@ -119,13 +118,18 @@ public class GameDetectionService
                     continue;
 
                 var gameName = biggestFile.Item1.Split('\\').Last();
-                gameModels.Add(new GameModel { Name = gameName, FilePath = biggestFile.Item1 });
+                if (string.IsNullOrEmpty(gameName))
+                    gameName = biggestFile.Item1.Split('/').Last();
+                if (string.IsNullOrEmpty(gameName))
+                    gameName = biggestFile.Item1;
+
+                gameModels.Add(new TrackedProcess { Name = gameName, Path = biggestFile.Item1, HoursRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
             }
 
             var didDbUpdate = false;
-            foreach (var game in gameModels.Where(game => !context.Processes.Any(x => x.Path == game.FilePath)))
+            foreach (var game in gameModels.Where(game => !context.Processes.Any(x => x.Path == game.Path)))
             {
-                await context.Processes.AddAsync(new TrackedProcess { Name = game.Name, Path = game.FilePath, HoursRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                context.Processes.Add(game);
                 didDbUpdate = true;
                 _logger.LogInformation(">> Added executable {exe} to the process list from Steam!", game.Name);
             }
