@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using System.Runtime.InteropServices;
+using Spectre.Console;
 using tracker.Database;
 using tracker.Database.DbModels;
 
@@ -6,6 +7,12 @@ namespace tracker.Services;
 
 public class ConsoleService
 {
+    [DllImport("kernel32.dll")]
+    static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
     private readonly string[] _options =
     {
         "Add Process%Adds a new process to track",
@@ -32,7 +39,8 @@ public class ConsoleService
 
     private async Task MainScreen()
     {
-        while (true)
+        var hidden = false;
+        while (!hidden)
         {
             Console.Clear();
             Console.WriteLine();
@@ -88,7 +96,9 @@ public class ConsoleService
                     BlacklistProcess();
                     break;
                 case 6:
-                    HideApp();
+                    hidden = HideApp();
+                    break;
+                default:
                     break;
             }
         }
@@ -155,8 +165,27 @@ public class ConsoleService
 
     }
 
-    private void HideApp()
+    private bool HideApp()
     {
+        Console.Clear();
+        Console.WriteLine();
+        AnsiConsole.Write(new Rule("[deepSkyBlue3]Hide Application[/]"));
+        Console.WriteLine();
+        var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        if (!isWindows)
+        {
+            AnsiConsole.Markup("[red]This feature only works on Windows.[/]\n");
+            return false;
+        }
 
+        AnsiConsole.Markup("[red]WARNING:[/] This will hide the console window from the system bar. " +
+                           "To close the app you must kill tracker.exe in the task manager\n");
+        var positive = AnsiConsole.Ask<string>("Are you sure you want to hide the application? ([springgreen3]y[/]/[red]n[/]):");
+        if (positive.ToLowerInvariant() != "y")
+            return false;
+
+        var window = GetConsoleWindow();
+        ShowWindow(window, 0);
+        return true;
     }
 }
