@@ -19,9 +19,12 @@ using var host = Host.CreateDefaultBuilder(args)
         services
             .AddDbContext<DataContext>(builder => builder.UseSqlite(cString))
             .AddSingleton(new HttpClient())
-            .AddScoped<DbInitService>();
+            .AddScoped<DbInitService>()
+            .AddScoped<GameDetectionService>();
     })
     .Build();
 
 await host.Services.GetRequiredService<DbInitService>().InitializeDatabaseAsync();
+await host.Services.GetRequiredService<GameDetectionService>().StartAutomaticDetectionAsync();
+
 await host.RunAsync();

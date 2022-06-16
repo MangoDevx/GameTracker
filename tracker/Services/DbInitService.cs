@@ -21,13 +21,13 @@ public class DbInitService
     {
         try
         {
-            await using var context = _dataContext;
+            var context = _dataContext;
             await context.Database.MigrateAsync();
 
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            if (!isWindows && !context.Whitelists.Any(x => x.PathName == "Steam"))
+            if (!isWindows && !context.Processes.Any(x => x.Name == "Steam"))
             {
-                await context.Whitelists.AddAsync(new Whitelist {PathName = "Steam", FullPath = string.Empty});
+                await context.Processes.AddAsync(new TrackedProcess {Name = "Steam", Path = null, Tracking = false});
                 _logger.LogWarning("Cannot automatically determine steam path. Please set one if you want to automatically detect Steam games.");
             }
             await context.SaveChangesAsync();
