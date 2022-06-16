@@ -32,7 +32,7 @@ public class GameDetectionService
     private async Task GetSteamGamesAsync()
     {
         var context = _context;
-        string? steamPath = null;
+        string? steamPath;
         if (context.Processes.Any(x => x.Name == "Steam"))
         {
             var setting = await context.Processes.FirstOrDefaultAsync(x => x.Name == "Steam");
