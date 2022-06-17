@@ -148,6 +148,7 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
+            inputPath = inputPath.Replace(@"\", "/");
             if (!File.Exists(inputPath))
             {
                 AnsiConsole.Markup("[red]Invalid input.[/] Please make sure you input the full path, including the application.\n\n");
@@ -155,6 +156,8 @@ public class ConsoleService : BackgroundService
             }
 
             var gameName = inputPath.Split('\\').Last();
+            if (string.IsNullOrEmpty(gameName))
+                gameName = inputPath.Split('/').Last();            
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath.Split('/').Last();
             if (string.IsNullOrEmpty(gameName))
@@ -326,7 +329,7 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path", "Hours Ran", "Tracking");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path ?? "NA", (process.MinutesRan / 60.0).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
+            table.AddRow(process.Name ?? "NA", process.Path?.Replace(@"\", "/") ?? "NA", (process.MinutesRan / 60.0).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
@@ -524,7 +527,7 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path ?? "NA");
+            table.AddRow(process.Name ?? "NA", process.Path?.Replace(@"\", "/") ?? "NA");
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();

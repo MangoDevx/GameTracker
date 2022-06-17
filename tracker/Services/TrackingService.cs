@@ -20,7 +20,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        new Timer((o) => TrackProcesses(token), null, 10000, 60000);
+        new Timer((o) => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1));
         await Task.Delay(1, token);
     }
 
@@ -39,18 +39,20 @@ public class TrackingService : BackgroundService
                 try { path = process.MainModule?.FileName; }
                 catch (Exception ex) // Suppress exceptions for processes that have protected main modules
                 {
-                    if (ex is Win32Exception)
+                    if (ex is Win32Exception or InvalidOperationException)
                         continue;
                     throw;
                 }
 
                 if (path is null)
                     continue;
-
-                if (!context.Processes.Any(x => x.Path == path))
+                if(path.Contains("notepad"))
+                    Console.WriteLine("b");
+                path = path.Replace(@"\", @"/");
+                if (!context.Processes.Where(x => x.Path != null).Any(x => x.Path!.ToLower() == path.ToLower()))
                     continue;
 
-                var trackedProcess = context.Processes.AsQueryable().OrderBy(x => x.Id).Where(x => x.Tracking).FirstOrDefault(x => x.Path == path);
+                var trackedProcess = context.Processes.AsQueryable().OrderBy(x => x.Id).Where(x => x.Path != null).FirstOrDefault(x => x.Path!.ToLower() == path.ToLower());
                 if (trackedProcess is null)
                     continue;
 

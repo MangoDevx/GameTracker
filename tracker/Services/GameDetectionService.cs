@@ -122,7 +122,7 @@ public class GameDetectionService
                 if (string.IsNullOrEmpty(gameName))
                     gameName = biggestFile.Item1;
 
-                gameModels.Add(new TrackedProcess { Name = gameName, Path = biggestFile.Item1, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                gameModels.Add(new TrackedProcess { Name = gameName, Path = biggestFile.Item1.Replace(@"\\", "/"), MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
             }
 
             var didDbUpdate = false;
