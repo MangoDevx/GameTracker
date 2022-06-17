@@ -18,15 +18,18 @@ using var host = Host.CreateDefaultBuilder(args)
     {
         var cString = context.Configuration.GetConnectionString("Sqlite");
         services
-            .AddDbContext<DataContext>(builder => builder.UseSqlite(cString))
+            .AddSqlite<DataContext>(cString)
             .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>()
             .AddScoped<GameDetectionService>()
-            .AddScoped<ConsoleService>()
+            .AddScoped<TrackingService>()
             .AddHostedService<ConsoleService>();
     })
     .Build();
 
 await host.Services.GetRequiredService<DbInitService>().InitializeDatabaseAsync();
 await host.Services.GetRequiredService<GameDetectionService>().StartAutomaticDetectionAsync();
+var service = host.Services.GetRequiredService<TrackingService>();
+var thread = new Thread(service.RunTrackingService) { Name = "TrackingThread", IsBackground = true };
+thread.Start();
 await host.RunAsync();
