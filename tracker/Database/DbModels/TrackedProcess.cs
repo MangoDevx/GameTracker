@@ -10,5 +10,5 @@ public class TrackedProcess
     public string? Path { get; set; }
     public string? LastAccessed { get; set; }
     public bool Tracking { get; set; } = true;
-    public int HoursRan { get; set; }
+    public double MinutesRan { get; set; }
 }

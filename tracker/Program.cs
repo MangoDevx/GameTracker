@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using tracker.Database;
 using tracker.Services;
 
+
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((_, logging) =>
     {
@@ -21,11 +22,11 @@ using var host = Host.CreateDefaultBuilder(args)
             .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>()
             .AddScoped<GameDetectionService>()
+            .AddHostedService<TrackingService>()
             .AddHostedService<ConsoleService>();
     })
     .Build();
 
 await host.Services.GetRequiredService<DbInitService>().InitializeDatabaseAsync();
 await host.Services.GetRequiredService<GameDetectionService>().StartAutomaticDetectionAsync();
-await Task.Factory.StartNew(async () => await new TrackingService(CancellationToken.None).TrackProcesses(), TaskCreationOptions.LongRunning); 
 await host.RunAsync();

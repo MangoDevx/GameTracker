@@ -1,11 +1,15 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using tracker.Database;
 using tracker.Database.DbModels;
 
 namespace tracker.Services;
 
+// Todo: Finish implementing the cancellation token
 public class ConsoleService : BackgroundService
 {
     private readonly string[] _options =
@@ -27,31 +31,45 @@ public class ConsoleService : BackgroundService
     };
 
 
-    private readonly DataContext _context;
+    private readonly IServiceProvider _provider;
+    private readonly ILogger<ConsoleService> _logger;
+    private DataContext? _context = null;
 
-    public ConsoleService(DataContext context)
+    public ConsoleService(IServiceProvider provider, ILogger<ConsoleService> logger)
     {
-        _context = context;
+        _provider = provider;
+        _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await RunConsole();
+        await RunConsole(token);
     }
 
 
-    public async Task RunConsole()
+    public async Task RunConsole(CancellationToken token)
     {
         Console.WriteLine("Press any key to continue to the next screen...");
         Console.ReadKey();
-        await MainScreen();
+        await MainScreen(token);
     }
 
-    private async Task MainScreen()
+    private async Task MainScreen(CancellationToken token)
     {
-        var hidden = false;
-        while (!hidden)
+        using var scope = _provider.CreateScope();
+        _context = scope.ServiceProvider.GetRequiredService<DataContext>();
+        if (_context is null)
         {
+            _logger.LogError("DataContext is null in ConsoleService.");
+            return;
+        }
+
+        var running = true;
+        while (running)
+        {
+            if (token.IsCancellationRequested)
+                break;
+
             Console.Clear();
             Console.WriteLine();
             var table = new Table { Border = TableBorder.Rounded };
@@ -77,8 +95,8 @@ public class ConsoleService : BackgroundService
                 optionHint += i + 1 + ", ";
             optionHint += $"{_options.Length})";
 
-            int selectedOption;
-            while (true)
+            var selectedOption = 0;
+            while (!token.IsCancellationRequested)
             {
                 AnsiConsole.Cursor.Show();
                 selectedOption = AnsiConsole.Ask<int>($"Which [deepSkyBlue3]option[/] do you want to select {optionHint}:");
@@ -88,25 +106,28 @@ public class ConsoleService : BackgroundService
                     break;
             }
 
+            if (token.IsCancellationRequested)
+                break;
+
             switch (selectedOption)
             {
                 case 1:
-                    await AddProcessAsync();
+                    await AddProcessAsync(token);
                     break;
                 case 2:
-                    await EditProcessAsync();
+                    await EditProcessAsync(token);
                     break;
                 case 3:
-                    await DeleteProcessAsync();
+                    await DeleteProcessAsync(token);
                     break;
                 case 4:
-                    ListProcesses();
+                    ListProcesses(token);
                     break;
                 case 5:
-                    await BlacklistMenu();
+                    await BlacklistMenu(token);
                     break;
                 case 6:
-                    hidden = HideApp();
+                    running = !HideApp(token);
                     break;
                 default:
                     break;
@@ -114,14 +135,14 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private async Task AddProcessAsync()
+    private async Task AddProcessAsync(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Process[/]"));
         Console.WriteLine();
 
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
@@ -139,14 +160,14 @@ public class ConsoleService : BackgroundService
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
-            if (_context.Processes.Any(x => x.Path == inputPath))
+            if (_context!.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]This application is already in the list[/]\n\n");
             }
             else
             {
-                _context.Processes.Add(new TrackedProcess { Name = gameName, Path = inputPath, HoursRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
-                await _context.SaveChangesAsync();
+                _context.Processes.Add(new TrackedProcess { Name = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                await _context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the list.\n"));
             }
 
@@ -157,20 +178,20 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private async Task EditProcessAsync()
+    private async Task EditProcessAsync(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]Edit Process[/]"));
         Console.WriteLine();
 
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]name or path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 return;
 
-            if (_context.Processes.Any(x => x.Name == inputPath) && _context.Processes.Any(x => x.Path == inputPath))
+            if (_context!.Processes.Any(x => x.Name == inputPath) && _context.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]No process was found with that name or path[/]\n\n");
             }
@@ -212,7 +233,7 @@ public class ConsoleService : BackgroundService
                         }
 
                         process.Path = newValue;
-                        await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync(token);
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s path.\n\n"));
                     }
 
@@ -223,7 +244,7 @@ public class ConsoleService : BackgroundService
                             continue;
 
                         process.Name = newValue;
-                        await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync(token);
 
                         if (!inputPath.Contains('\\') && !inputPath.Contains('/'))
                             inputPath = newValue;
@@ -236,7 +257,7 @@ public class ConsoleService : BackgroundService
                         newValue = newValue.ToLowerInvariant();
 
                         process.Tracking = newValue != "n";
-                        await _context.SaveChangesAsync();
+                        await _context.SaveChangesAsync(token);
 
                         if (process.Tracking)
                             AnsiConsole.Write(new Markup($"Successfully tracking [springgreen3]{process.Name}[/]'s\n"));
@@ -253,20 +274,20 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private async Task DeleteProcessAsync()
+    private async Task DeleteProcessAsync(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]Delete Process[/]"));
         Console.WriteLine();
 
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path or name[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
-            var process = _context.Processes.FirstOrDefault(x => x.Path == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Name == inputPath);
+            var process = _context!.Processes.FirstOrDefault(x => x.Path == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Name == inputPath);
             if (process is null)
             {
                 AnsiConsole.Markup("[red]No application found with that name or path[/]\n\n");
@@ -274,7 +295,7 @@ public class ConsoleService : BackgroundService
             else
             {
                 _context.Processes.Remove(process);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the list.\n"));
             }
 
@@ -285,14 +306,14 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private void ListProcesses()
+    private void ListProcesses(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]List Processes[/]"));
         Console.WriteLine();
 
-        var processes = _context.Processes.ToList();
+        var processes = _context!.Processes.ToList();
         if (!processes.Any())
         {
             AnsiConsole.Markup("[red]No processes in list[/]\n");
@@ -305,13 +326,13 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path", "Hours Ran", "Tracking");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path ?? "NA", process.HoursRan.ToString(), process.Tracking.ToString());
+            table.AddRow(process.Name ?? "NA", process.Path ?? "NA", (process.MinutesRan / 60.0).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
     }
 
-    private bool HideApp()
+    private bool HideApp(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
@@ -335,7 +356,7 @@ public class ConsoleService : BackgroundService
         return true;
     }
 
-    private async Task BlacklistMenu()
+    private async Task BlacklistMenu(CancellationToken token)
     {
         var loop = true;
         while (loop)
@@ -379,13 +400,13 @@ public class ConsoleService : BackgroundService
             switch (selectedOption)
             {
                 case 1:
-                    await AddBlacklistProcessAsync();
+                    await AddBlacklistProcessAsync(token);
                     break;
                 case 2:
-                    await DeleteBlacklistProcessAsync();
+                    await DeleteBlacklistProcessAsync(token);
                     break;
                 case 3:
-                    ListBlacklistProcesses();
+                    ListBlacklistProcesses(token);
                     break;
                 case 4:
                     loop = false;
@@ -394,14 +415,14 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private async Task AddBlacklistProcessAsync()
+    private async Task AddBlacklistProcessAsync(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Blacklist Process[/]"));
         Console.WriteLine();
 
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
@@ -413,7 +434,7 @@ public class ConsoleService : BackgroundService
                 continue;
             }
 
-            if (_context.Blacklists.Any(x => x.Path == inputPath))
+            if (_context!.Blacklists.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]This application is already in the blacklist.[/]\n\n");
                 continue;
@@ -436,12 +457,12 @@ public class ConsoleService : BackgroundService
                 }
 
                 _context.Processes.Remove(process);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the list.\n"));
             }
 
             _context.Blacklists.Add(new Blacklist { Path = inputPath, Name = gameName });
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(token);
             AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the blacklist.\n"));
 
             var inputAgain = AnsiConsole.Ask<string>("Do you want to add another app? ([springgreen3]y[/]/[red]n[/]): ");
@@ -451,20 +472,20 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private async Task DeleteBlacklistProcessAsync()
+    private async Task DeleteBlacklistProcessAsync(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]Delete Blacklist Process[/]"));
         Console.WriteLine();
 
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path or name[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
-            var process = _context.Blacklists.FirstOrDefault(x => x.Path == inputPath) ?? _context.Blacklists.FirstOrDefault(x => x.Name == inputPath);
+            var process = _context!.Blacklists.FirstOrDefault(x => x.Path == inputPath) ?? _context.Blacklists.FirstOrDefault(x => x.Name == inputPath);
             if (process is null)
             {
                 AnsiConsole.Markup("[red]No application found with that name or path[/]\n\n");
@@ -472,7 +493,7 @@ public class ConsoleService : BackgroundService
             else
             {
                 _context.Blacklists.Remove(process);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the blacklist.\n"));
             }
 
@@ -483,14 +504,14 @@ public class ConsoleService : BackgroundService
         }
     }
 
-    private void ListBlacklistProcesses()
+    private void ListBlacklistProcesses(CancellationToken token)
     {
         Console.Clear();
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]List Blacklist Processes[/]"));
         Console.WriteLine();
 
-        var processes = _context.Blacklists.ToList();
+        var processes = _context!.Blacklists.ToList();
         if (!processes.Any())
         {
             AnsiConsole.Markup("[red]No processes in blacklist[/]\n");
