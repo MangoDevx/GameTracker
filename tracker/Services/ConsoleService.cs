@@ -7,12 +7,6 @@ namespace tracker.Services;
 
 public class ConsoleService
 {
-    [DllImport("kernel32.dll")]
-    static extern IntPtr GetConsoleWindow();
-
-    [DllImport("user32.dll")]
-    static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
     private readonly string[] _options =
     {
         "Add Process%Adds a new process to track",
@@ -272,8 +266,8 @@ public class ConsoleService
         if (positive.ToLowerInvariant() != "y")
             return false;
 
-        var window = GetConsoleWindow();
-        ShowWindow(window, 0);
+        var window = Pinvoke.Pinvoke.GetConsoleWindow();
+        Pinvoke.Pinvoke.ShowWindow(window, 0);
         return true;
     }
 }
