@@ -12,6 +12,7 @@ public class TrackingService : BackgroundService
     private readonly IServiceProvider _provider;
     private readonly ILogger<TrackingService> _logger;
     private Timer _timer = null!;
+    private List<string> _trackedProcesses = new();
 
     public TrackingService(IServiceProvider provider, ILogger<TrackingService> logger)
     {
@@ -48,6 +49,9 @@ public class TrackingService : BackgroundService
                     continue;
 
                 path = path.Replace(@"\", @"\"); // Fixes weird occurence where returned path is \\ and not just \
+                if (_trackedProcesses.Any(x => x == path.ToLower()))
+                    continue;
+
                 if (!context.Processes.Where(x => x.Path != null).Any(x => x.Path!.ToLower() == path.ToLower()))
                     continue;
 
@@ -57,6 +61,7 @@ public class TrackingService : BackgroundService
 
                 trackedProcess.LastAccessed = DateTime.UtcNow.ToString("o");
                 trackedProcess.MinutesRan += 1;
+                _trackedProcesses.Add(trackedProcess.Path!.ToLower());
                 _logger.LogInformation("Added minute to {name}", trackedProcess.Name ?? "NA");
 
                 if (!dbUpdated)
@@ -65,6 +70,7 @@ public class TrackingService : BackgroundService
 
             if (dbUpdated)
                 await context.SaveChangesAsync(token);
+            _trackedProcesses.Clear();
         }
         catch (Exception e)
         {
