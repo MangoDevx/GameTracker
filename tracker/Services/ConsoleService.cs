@@ -1,11 +1,12 @@
 ﻿using System.Runtime.InteropServices;
+using Microsoft.Extensions.Hosting;
 using Spectre.Console;
 using tracker.Database;
 using tracker.Database.DbModels;
 
 namespace tracker.Services;
 
-public class ConsoleService
+public class ConsoleService : BackgroundService
 {
     private readonly string[] _options =
     {
@@ -32,6 +33,12 @@ public class ConsoleService
     {
         _context = context;
     }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await RunConsole();
+    }
+
 
     public async Task RunConsole()
     {
@@ -501,4 +508,5 @@ public class ConsoleService
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
     }
+
 }

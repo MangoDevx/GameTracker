@@ -22,12 +22,11 @@ using var host = Host.CreateDefaultBuilder(args)
             .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>()
             .AddScoped<GameDetectionService>()
-            .AddScoped<ConsoleService>();
+            .AddScoped<ConsoleService>()
+            .AddHostedService<ConsoleService>();
     })
     .Build();
 
 await host.Services.GetRequiredService<DbInitService>().InitializeDatabaseAsync();
 await host.Services.GetRequiredService<GameDetectionService>().StartAutomaticDetectionAsync();
-await host.Services.GetRequiredService<ConsoleService>().RunConsole();
-
 await host.RunAsync();
