@@ -12,7 +12,7 @@ public class TrackingService : BackgroundService
     private readonly IServiceProvider _provider;
     private readonly ILogger<TrackingService> _logger;
     private Timer _timer = null!;
-    private List<string> _trackedProcesses = new();
+    private readonly List<string> _trackedProcesses = new();
 
     public TrackingService(IServiceProvider provider, ILogger<TrackingService> logger)
     {
