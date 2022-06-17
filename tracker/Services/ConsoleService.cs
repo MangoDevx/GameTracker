@@ -162,7 +162,6 @@ public class ConsoleService
             if (_context.Processes.Any(x => x.Name == inputPath) && _context.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]No process was found with that name or path[/]\n\n");
-                continue;
             }
             else
             {
@@ -172,7 +171,7 @@ public class ConsoleService
                     AnsiConsole.Markup("[red]Failed to get the process[/]\n");
                     continue;
                 }
-
+                AnsiConsole.Markup($"Process Name: [deepSkyBlue3]{process.Name}[/]\nProcess Path: [deepSkyBlue3]{process.Path}[/]\nTracking: [deepSkyBlue3]{process.Tracking}[/]\n");
                 while (true)
                 {
                     Console.WriteLine();
@@ -190,9 +189,10 @@ public class ConsoleService
 
                     if (response == responseChoices[0])
                     {
-                        var newValue = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
+                        var newValue = AnsiConsole.Ask<string>("Please input the new [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
                         if (newValue.ToLowerInvariant() == "back")
                             continue;
+
                         if (!File.Exists(newValue))
                         {
                             AnsiConsole.Markup("[red]The given path was not valid. No file found there.[/]\n");
@@ -204,12 +204,35 @@ public class ConsoleService
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s path.\n\n"));
                     }
 
-                    var inputAgain = AnsiConsole.Ask<string>("Do you want to edit this process again? ([springgreen3]y[/]/[red]n[/]): ");
-                    if (inputAgain.ToLowerInvariant() == "n")
+                    if (response == responseChoices[1])
                     {
-                        Console.WriteLine();
-                        break;
+                        var newValue = AnsiConsole.Ask<string>("Please input the new [deepSkyBlue3]name[/] to the game/app or [red]back[/] to go back: ");
+                        if (newValue.ToLowerInvariant() == "back")
+                            continue;
+
+                        process.Name = newValue;
+                        await _context.SaveChangesAsync();
+                        AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s name.\n\n"));
                     }
+
+                    if (response == responseChoices[2])
+                    {
+                        var newValue = AnsiConsole.Ask<string>("Do you wish to keep tracking this process? ([springgreen3]y[/]/[red]n[/]): ");
+                        newValue = newValue.ToLowerInvariant();
+
+                        process.Tracking = newValue != "n";
+                        await _context.SaveChangesAsync();
+
+                        if(process.Tracking)
+                            AnsiConsole.Write(new Markup($"Successfully tracking [springgreen3]{process.Name}[/]'s\n\n"));
+                        else
+                            AnsiConsole.Write(new Markup($"No longer tracking [springgreen3]{process.Name}[/]'s\n\n"));
+                    }
+
+                    var inputAgain = AnsiConsole.Ask<string>("Do you want to edit this process again? ([springgreen3]y[/]/[red]n[/]): ");
+                    if (inputAgain.ToLowerInvariant() != "n") continue;
+                    Console.WriteLine();
+                    break;
                 }
             }
         }
