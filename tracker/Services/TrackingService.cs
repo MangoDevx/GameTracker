@@ -21,7 +21,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         await Task.Delay(1, token);
     }
 
