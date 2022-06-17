@@ -71,7 +71,6 @@ public class GameDetectionService
             return;
         }
 
-        //await CheckSteamDataAsync();
         var libraryPaths = await VdfReader.VdfReader.ReadVdfLibraryPathsAsync(steamPath + "/steamapps/libraryfolders.vdf");
         var gameDirectories = new List<string>();
 

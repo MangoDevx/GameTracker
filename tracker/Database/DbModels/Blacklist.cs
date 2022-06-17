@@ -6,7 +6,7 @@ public class Blacklist
 {
     [Key] public int Id { get; set; }
 
-    public string? PathName { get; set; }
-    public string? FullPath { get; set; }
+    public string? Name { get; set; }
+    public string? Path { get; set; }
 }
 

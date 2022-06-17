@@ -22,7 +22,7 @@ using var host = Host.CreateDefaultBuilder(args)
             .AddSingleton(new HttpClient())
             .AddScoped<DbInitService>()
             .AddScoped<GameDetectionService>()
-            .AddSingleton<ConsoleService>();
+            .AddScoped<ConsoleService>();
     })
     .Build();
 
