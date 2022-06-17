@@ -11,6 +11,7 @@ public class TrackingService : BackgroundService
 {
     private readonly IServiceProvider _provider;
     private readonly ILogger<TrackingService> _logger;
+    private Timer _timer = null!;
 
     public TrackingService(IServiceProvider provider, ILogger<TrackingService> logger)
     {
@@ -20,7 +21,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        new Timer((o) => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1));
+        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         await Task.Delay(1, token);
     }
 
@@ -28,8 +29,7 @@ public class TrackingService : BackgroundService
     {
         try
         {
-            using var scope = _provider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+            var context = _provider.GetRequiredService<DataContext>();
             var currentProcesses = Process.GetProcesses().ToList();
             var dbUpdated = false;
 
@@ -46,9 +46,8 @@ public class TrackingService : BackgroundService
 
                 if (path is null)
                     continue;
-                if(path.Contains("notepad"))
-                    Console.WriteLine("b");
-                path = path.Replace(@"\", @"/");
+
+                path = path.Replace(@"\", @"\"); // Fixes weird occurence where returned path is \\ and not just \
                 if (!context.Processes.Where(x => x.Path != null).Any(x => x.Path!.ToLower() == path.ToLower()))
                     continue;
 

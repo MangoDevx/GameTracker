@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.InteropServices;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -33,7 +34,6 @@ public class ConsoleService : BackgroundService
 
     private readonly IServiceProvider _provider;
     private readonly ILogger<ConsoleService> _logger;
-    private DataContext? _context = null;
 
     public ConsoleService(IServiceProvider provider, ILogger<ConsoleService> logger)
     {
@@ -56,14 +56,6 @@ public class ConsoleService : BackgroundService
 
     private async Task MainScreen(CancellationToken token)
     {
-        using var scope = _provider.CreateScope();
-        _context = scope.ServiceProvider.GetRequiredService<DataContext>();
-        if (_context is null)
-        {
-            _logger.LogError("DataContext is null in ConsoleService.");
-            return;
-        }
-
         var running = true;
         while (running)
         {
@@ -148,7 +140,6 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
-            inputPath = inputPath.Replace(@"\", "/");
             if (!File.Exists(inputPath))
             {
                 AnsiConsole.Markup("[red]Invalid input.[/] Please make sure you input the full path, including the application.\n\n");
@@ -163,14 +154,15 @@ public class ConsoleService : BackgroundService
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
-            if (_context!.Processes.Any(x => x.Path == inputPath))
+            var context = _provider.GetRequiredService<DataContext>();
+            if (context.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]This application is already in the list[/]\n\n");
             }
             else
             {
-                _context.Processes.Add(new TrackedProcess { Name = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
-                await _context.SaveChangesAsync(token);
+                context.Processes.Add(new TrackedProcess { Name = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the list.\n"));
             }
 
@@ -194,7 +186,8 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 return;
 
-            if (_context!.Processes.Any(x => x.Name == inputPath) && _context.Processes.Any(x => x.Path == inputPath))
+            var context = _provider.GetRequiredService<DataContext>();
+            if (context.Processes.Any(x => x.Name == inputPath) && context.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]No process was found with that name or path[/]\n\n");
             }
@@ -202,7 +195,7 @@ public class ConsoleService : BackgroundService
             {
                 while (true)
                 {
-                    var process = _context.Processes.FirstOrDefault(x => x.Name == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Path == inputPath);
+                    var process = context.Processes.FirstOrDefault(x => x.Name == inputPath) ?? context.Processes.FirstOrDefault(x => x.Path == inputPath);
                     if (process is null)
                     {
                         AnsiConsole.Markup("[red]Failed to get the process[/]\n\n");
@@ -236,7 +229,7 @@ public class ConsoleService : BackgroundService
                         }
 
                         process.Path = newValue;
-                        await _context.SaveChangesAsync(token);
+                        await context.SaveChangesAsync(token);
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s path.\n\n"));
                     }
 
@@ -247,7 +240,7 @@ public class ConsoleService : BackgroundService
                             continue;
 
                         process.Name = newValue;
-                        await _context.SaveChangesAsync(token);
+                        await context.SaveChangesAsync(token);
 
                         if (!inputPath.Contains('\\') && !inputPath.Contains('/'))
                             inputPath = newValue;
@@ -260,7 +253,7 @@ public class ConsoleService : BackgroundService
                         newValue = newValue.ToLowerInvariant();
 
                         process.Tracking = newValue != "n";
-                        await _context.SaveChangesAsync(token);
+                        await context.SaveChangesAsync(token);
 
                         if (process.Tracking)
                             AnsiConsole.Write(new Markup($"Successfully tracking [springgreen3]{process.Name}[/]'s\n"));
@@ -290,15 +283,16 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
-            var process = _context!.Processes.FirstOrDefault(x => x.Path == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Name == inputPath);
+            var context = _provider.GetRequiredService<DataContext>();
+            var process = context.Processes.FirstOrDefault(x => x.Path == inputPath) ?? context.Processes.FirstOrDefault(x => x.Name == inputPath);
             if (process is null)
             {
                 AnsiConsole.Markup("[red]No application found with that name or path[/]\n\n");
             }
             else
             {
-                _context.Processes.Remove(process);
-                await _context.SaveChangesAsync(token);
+                context.Processes.Remove(process);
+                await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the list.\n"));
             }
 
@@ -316,7 +310,8 @@ public class ConsoleService : BackgroundService
         AnsiConsole.Write(new Rule("[deepSkyBlue3]List Processes[/]"));
         Console.WriteLine();
 
-        var processes = _context!.Processes.ToList();
+        var context = _provider.GetRequiredService<DataContext>();
+        var processes = context.Processes.ToList();
         if (!processes.Any())
         {
             AnsiConsole.Markup("[red]No processes in list[/]\n");
@@ -329,7 +324,7 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path", "Hours Ran", "Tracking");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path?.Replace(@"\", "/") ?? "NA", (process.MinutesRan / 60.0).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
+            table.AddRow(process.Name ?? "NA", process.Path?.Replace(@"\", "/") ?? "NA", Math.Round(process.MinutesRan / 60.0, 2).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
@@ -437,7 +432,8 @@ public class ConsoleService : BackgroundService
                 continue;
             }
 
-            if (_context!.Blacklists.Any(x => x.Path == inputPath))
+            var context = _provider.GetRequiredService<DataContext>();
+            if (context.Blacklists.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]This application is already in the blacklist.[/]\n\n");
                 continue;
@@ -449,23 +445,23 @@ public class ConsoleService : BackgroundService
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
-            if (_context.Processes.Any(x => x.Path == inputPath))
+            if (context.Processes.Any(x => x.Path == inputPath))
             {
                 AnsiConsole.Markup("[red]This application is in the tracking list.[/] Deleting application...\n");
-                var process = _context.Processes.FirstOrDefault(x => x.Path == inputPath);
+                var process = context.Processes.FirstOrDefault(x => x.Path == inputPath);
                 if (process is null)
                 {
                     AnsiConsole.Markup("[red]Failed to delete application.[/]\n\n");
                     continue;
                 }
 
-                _context.Processes.Remove(process);
-                await _context.SaveChangesAsync(token);
+                context.Processes.Remove(process);
+                await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the list.\n"));
             }
 
-            _context.Blacklists.Add(new Blacklist { Path = inputPath, Name = gameName });
-            await _context.SaveChangesAsync(token);
+            context.Blacklists.Add(new Blacklist { Path = inputPath, Name = gameName });
+            await context.SaveChangesAsync(token);
             AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the blacklist.\n"));
 
             var inputAgain = AnsiConsole.Ask<string>("Do you want to add another app? ([springgreen3]y[/]/[red]n[/]): ");
@@ -488,15 +484,16 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
-            var process = _context!.Blacklists.FirstOrDefault(x => x.Path == inputPath) ?? _context.Blacklists.FirstOrDefault(x => x.Name == inputPath);
+            var context = _provider.GetRequiredService<DataContext>();
+            var process = context.Blacklists.FirstOrDefault(x => x.Path == inputPath) ?? context.Blacklists.FirstOrDefault(x => x.Name == inputPath);
             if (process is null)
             {
                 AnsiConsole.Markup("[red]No application found with that name or path[/]\n\n");
             }
             else
             {
-                _context.Blacklists.Remove(process);
-                await _context.SaveChangesAsync(token);
+                context.Blacklists.Remove(process);
+                await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully deleted [springgreen3]{process.Name}[/] from the blacklist.\n"));
             }
 
@@ -514,7 +511,8 @@ public class ConsoleService : BackgroundService
         AnsiConsole.Write(new Rule("[deepSkyBlue3]List Blacklist Processes[/]"));
         Console.WriteLine();
 
-        var processes = _context!.Blacklists.ToList();
+        var context = _provider.GetRequiredService<DataContext>();
+        var processes = context.Blacklists.ToList();
         if (!processes.Any())
         {
             AnsiConsole.Markup("[red]No processes in blacklist[/]\n");
