@@ -100,13 +100,13 @@ public class ConsoleService
 
     private async Task AddProcess()
     {
+        Console.Clear();
+        Console.WriteLine();
+        AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Process[/]"));
+        Console.WriteLine();
+
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine();
-            AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Process[/]"));
-            Console.WriteLine();
-
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 break;
@@ -142,13 +142,13 @@ public class ConsoleService
 
     private async Task EditProcess()
     {
+        Console.Clear();
+        Console.WriteLine();
+        AnsiConsole.Write(new Rule("[deepSkyBlue3]Edit Process[/]"));
+        Console.WriteLine();
+
         while (true)
         {
-            Console.Clear();
-            Console.WriteLine();
-            AnsiConsole.Write(new Rule("[deepSkyBlue3]Edit Process[/]"));
-            Console.WriteLine();
-
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]name or path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 return;
@@ -159,15 +159,16 @@ public class ConsoleService
             }
             else
             {
-                var process = _context.Processes.FirstOrDefault(x => x.Name == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Path == inputPath);
-                if (process is null)
-                {
-                    AnsiConsole.Markup("[red]Failed to get the process[/]\n");
-                    continue;
-                }
-                AnsiConsole.Markup($"Process Name: [deepSkyBlue3]{process.Name}[/]\nProcess Path: [deepSkyBlue3]{process.Path}[/]\nTracking: [deepSkyBlue3]{process.Tracking}[/]\n");
                 while (true)
                 {
+                    var process = _context.Processes.FirstOrDefault(x => x.Name == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Path == inputPath);
+                    if (process is null)
+                    {
+                        AnsiConsole.Markup("[red]Failed to get the process[/]\n\n");
+                        break;
+                    }
+                    AnsiConsole.Markup($"Process Name: [deepSkyBlue3]{process.Name}[/]\nProcess Path: [deepSkyBlue3]{process.Path}[/]\nTracking: [deepSkyBlue3]{process.Tracking}[/]\n");
+
                     Console.WriteLine();
                     AnsiConsole.Markup("Select what you'd like to edit about the process by highlighting it with the arrow keys, then pressing enter.\n");
                     var responseChoices = new string[] { "Process Path", "Process Name", "Track Process", "Back" };
@@ -206,6 +207,9 @@ public class ConsoleService
 
                         process.Name = newValue;
                         await _context.SaveChangesAsync();
+
+                        if (!inputPath.Contains('\\') && !inputPath.Contains('/'))
+                            inputPath = newValue;
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s name.\n\n"));
                     }
 
