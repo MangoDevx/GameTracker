@@ -84,7 +84,7 @@ public class ConsoleService
                     await AddProcess();
                     break;
                 case 2:
-                    EditProcess();
+                    await EditProcess();
                     break;
                 case 3:
                     DeleteProcess();
@@ -106,12 +106,13 @@ public class ConsoleService
 
     private async Task AddProcess()
     {
-        Console.Clear();
-        Console.WriteLine();
-        AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Process[/]"));
-        Console.WriteLine();
         while (true)
         {
+            Console.Clear();
+            Console.WriteLine();
+            AnsiConsole.Write(new Rule("[deepSkyBlue3]Add Process[/]"));
+            Console.WriteLine();
+
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 break;
@@ -130,7 +131,7 @@ public class ConsoleService
 
             if (_context.Processes.Any(x => x.Name == gameName))
             {
-                AnsiConsole.Markup("[red]This application is already in the list[/]\n");
+                AnsiConsole.Markup("[red]This application is already in the list[/]\n\n");
             }
             else
             {
@@ -145,9 +146,73 @@ public class ConsoleService
         }
     }
 
-    private void EditProcess()
+    private async Task EditProcess()
     {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine();
+            AnsiConsole.Write(new Rule("[deepSkyBlue3]Edit Process[/]"));
+            Console.WriteLine();
 
+            var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]name or path[/] to the game/app or [red]back[/] to go back: ");
+            if (inputPath.ToLowerInvariant() == "back")
+                return;
+
+            if (_context.Processes.Any(x => x.Name == inputPath) && _context.Processes.Any(x => x.Path == inputPath))
+            {
+                AnsiConsole.Markup("[red]No process was found with that name or path[/]\n\n");
+                continue;
+            }
+            else
+            {
+                var process = _context.Processes.FirstOrDefault(x => x.Name == inputPath) ?? _context.Processes.FirstOrDefault(x => x.Path == inputPath);
+                if (process is null)
+                {
+                    AnsiConsole.Markup("[red]Failed to get the process[/]\n");
+                    continue;
+                }
+
+                while (true)
+                {
+                    Console.WriteLine();
+                    AnsiConsole.Markup("Select what you'd like to edit about the process by highlighting it with the arrow keys, then pressing enter.\n");
+                    var responseChoices = new string[] { "Process Path", "Process Name", "Track Process", "Back" };
+                    var response = AnsiConsole.Prompt(new SelectionPrompt<string>()
+                        .AddChoices(responseChoices)
+                        .HighlightStyle(new Style(foreground: Color.DeepSkyBlue3)));
+
+                    if (response == responseChoices.Last())
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+
+                    if (response == responseChoices[0])
+                    {
+                        var newValue = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path[/] to the game/app or [red]back[/] to go back: ");
+                        if (newValue.ToLowerInvariant() == "back")
+                            continue;
+                        if (!File.Exists(newValue))
+                        {
+                            AnsiConsole.Markup("[red]The given path was not valid. No file found there.[/]\n");
+                            continue;
+                        }
+
+                        process.Path = newValue;
+                        await _context.SaveChangesAsync();
+                        AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s path.\n\n"));
+                    }
+
+                    var inputAgain = AnsiConsole.Ask<string>("Do you want to edit this process again? ([springgreen3]y[/]/[red]n[/]): ");
+                    if (inputAgain.ToLowerInvariant() == "n")
+                    {
+                        Console.WriteLine();
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     private void DeleteProcess()
