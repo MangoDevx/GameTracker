@@ -2,13 +2,19 @@
 
 public class TrackingService
 {
+    private readonly CancellationToken _ct;
+
+    public TrackingService(CancellationToken ct)
+    {
+        _ct = ct;
+    }
 
     public async void RunTrackingService()
     {
         await TrackProcesses();
     }
 
-    private async Task TrackProcesses()
+    public async Task TrackProcesses()
     {
         while (true)
         {
