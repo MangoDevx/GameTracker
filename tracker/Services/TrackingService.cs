@@ -22,7 +22,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         await Task.Delay(1, token);
     }
 
@@ -48,7 +48,6 @@ public class TrackingService : BackgroundService
                 if (path is null)
                     continue;
 
-                path = path.Replace(@"\", @"\"); // Fixes weird occurence where returned path is \\ and not just \
                 if (_trackedProcesses.Any(x => x == path.ToLower()))
                     continue;
 

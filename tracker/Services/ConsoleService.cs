@@ -147,7 +147,7 @@ public class ConsoleService : BackgroundService
 
             var gameName = inputPath.Split('\\').Last();
             if (string.IsNullOrEmpty(gameName))
-                gameName = inputPath.Split('/').Last();            
+                gameName = inputPath.Split(@"\\").Last();            
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath.Split('/').Last();
             if (string.IsNullOrEmpty(gameName))
