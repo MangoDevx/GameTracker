@@ -114,6 +114,7 @@ public class GameDetectionService
                         biggestFile = (filePath, size);
                 }
 
+                biggestFile.Item1 = biggestFile.Item1.Replace(@"\", "/");
                 if (string.IsNullOrEmpty(biggestFile.Item1) || _context.Blacklists.Any(x => x.Path == biggestFile.Item1))
                     continue;
 
@@ -123,7 +124,7 @@ public class GameDetectionService
                 if (string.IsNullOrEmpty(gameName))
                     gameName = biggestFile.Item1;
 
-                gameModels.Add(new TrackedProcess { Name = gameName, Path = biggestFile.Item1.Replace(@"\", @"/"), MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                gameModels.Add(new TrackedProcess { Name = gameName, Path = biggestFile.Item1, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
             }
 
             var didDbUpdate = false;
