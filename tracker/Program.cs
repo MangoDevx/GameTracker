@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using tracker.Database;
-using tracker.Pinvoke;
 using tracker.Services;
 
 Process? proc = null;
@@ -20,9 +19,24 @@ else
     var isExe = File.Exists("../api/TrackerApi.exe");
     if (isExe)
     {
-        proc = Process.Start("../api/TrackerApi.exe");
-        //Pinvoke.ShowWindow(proc.MainWindowHandle, 0);
+        var processInfo = new ProcessStartInfo("../api/TrackerApi.exe")
+        {
+            WorkingDirectory = "../api",
+            CreateNoWindow = true,
+            UseShellExecute = false
+        };
+        proc = Process.Start(processInfo);
         Console.WriteLine("Api hidden. To manually kill it go to task manager and kill TrackerApi.exe. Exit App command should also take care of it.");
+    }
+    else
+    {
+        var processInfo = new ProcessStartInfo("/bin/bash", "dotnet ../api/TrackerApi.dll")
+        {
+            WorkingDirectory = "../api",
+            UseShellExecute = false
+        };
+        proc = Process.Start(processInfo);
+        Console.WriteLine("Api launched. You may need to manually kill it, or use the Exit Command app from the main menu.");
     }
 }
 #endif
