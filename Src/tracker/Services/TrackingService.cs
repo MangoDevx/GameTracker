@@ -48,6 +48,8 @@ public class TrackingService : BackgroundService
                 if (path is null)
                     continue;
 
+                path = path.Replace(@"\", @"/");
+
                 if (_trackedProcesses.Any(x => x == path.ToLower()))
                     continue;
 

@@ -149,11 +149,9 @@ public class ConsoleService : BackgroundService
                 continue;
             }
 
-            var gameName = inputPath.Split('\\').Last();
-            if (string.IsNullOrEmpty(gameName))
-                gameName = inputPath.Split(@"\\").Last();            
-            if (string.IsNullOrEmpty(gameName))
-                gameName = inputPath.Split('/').Last();
+            inputPath = inputPath.Replace(@"\", "/");
+
+            var gameName = inputPath.Split('/').Last();
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
@@ -186,6 +184,8 @@ public class ConsoleService : BackgroundService
         while (!token.IsCancellationRequested)
         {
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]name or path[/] to the game/app or [red]back[/] to go back: ");
+            inputPath = inputPath.Replace(@"\", "/");
+
             if (inputPath.ToLowerInvariant() == "back")
                 return;
 
@@ -208,7 +208,7 @@ public class ConsoleService : BackgroundService
 
                     Console.WriteLine();
                     AnsiConsole.Markup("Select what you'd like to edit about the process by highlighting it with the arrow keys, then pressing enter.\n");
-                    var responseChoices = new string[] { "Process Path", "Process Name", "Track Process", "Back" };
+                    var responseChoices = new[] { "Process Path", "Process Name", "Track Process", "Back" };
                     var response = AnsiConsole.Prompt(new SelectionPrompt<string>()
                         .AddChoices(responseChoices)
                         .HighlightStyle(new Style(foreground: Color.DeepSkyBlue3)));
@@ -231,6 +231,7 @@ public class ConsoleService : BackgroundService
                             continue;
                         }
 
+                        newValue = newValue.Replace(@"\", "/");
                         process.Path = newValue;
                         await context.SaveChangesAsync(token);
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s path.\n\n"));
@@ -286,6 +287,7 @@ public class ConsoleService : BackgroundService
             if (inputPath.ToLowerInvariant() == "back")
                 break;
 
+            inputPath = inputPath.Replace(@"\", @"/");
             var context = _provider.GetRequiredService<DataContext>();
             var process = context.Processes.FirstOrDefault(x => x.Path == inputPath) ?? context.Processes.FirstOrDefault(x => x.Name == inputPath);
             if (process is null)
@@ -327,7 +329,7 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path", "Hours Ran", "Tracking");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path?.Replace(@"\", "/") ?? "NA", Math.Round(process.MinutesRan / 60.0, 2).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
+            table.AddRow(process.Name ?? "NA", process.Path ?? "NA", Math.Round(process.MinutesRan / 60.0, 2).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
@@ -447,6 +449,8 @@ public class ConsoleService : BackgroundService
                 continue;
             }
 
+            inputPath = inputPath.Replace(@"\", @"/");
+
             var context = _provider.GetRequiredService<DataContext>();
             if (context.Blacklists.Any(x => x.Path == inputPath))
             {
@@ -454,9 +458,7 @@ public class ConsoleService : BackgroundService
                 continue;
             }
 
-            var gameName = inputPath.Split('\\').Last();
-            if (string.IsNullOrEmpty(gameName))
-                gameName = inputPath.Split('/').Last();
+            var gameName = inputPath.Split('/').Last();
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
@@ -498,6 +500,8 @@ public class ConsoleService : BackgroundService
             var inputPath = AnsiConsole.Ask<string>("Please input the [deepSkyBlue3]path or name[/] to the game/app or [red]back[/] to go back: ");
             if (inputPath.ToLowerInvariant() == "back")
                 break;
+
+            inputPath = inputPath.Replace(@"\", @"/");
 
             var context = _provider.GetRequiredService<DataContext>();
             var process = context.Blacklists.FirstOrDefault(x => x.Path == inputPath) ?? context.Blacklists.FirstOrDefault(x => x.Name == inputPath);
