@@ -10,9 +10,9 @@ Process? proc = null;
 #if DEBUG
 Console.WriteLine("Remember to manually start the API");
 #else
-if (!File.Exists("../api/TrackerApi.exe") && !File.Exists("../api/TrackerApi.dll"))
+if (!File.Exists("../api/TrackerApi.exe") && !File.Exists("../api/TrackerApi.dll") || !Directory.Exists("../web"))
 {
-    Console.WriteLine("Api not found. Webpanel will not work.");
+    Console.WriteLine("Api/web not found. Webpanel will not work.");
 }
 else
 {
