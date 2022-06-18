@@ -8,6 +8,14 @@ builder.WebHost.UseKestrel();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(x =>
+{
+    x.AddDefaultPolicy(y =>
+    {
+        y.WithOrigins("http://localhost:3000", "https://localhost:3000");
+    });
+});
 var app = builder.Build();
 
 
@@ -18,6 +26,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors();
 app.UseHttpsRedirection();
 
 var data = new List<TrackerData>();

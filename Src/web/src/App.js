@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import axios from 'axios';
 
 import './App.css';
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
@@ -11,6 +12,7 @@ import { Menubar } from 'primereact/menubar';
 import { Chart } from 'primereact/chart'; 
 
 import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
+import { getDefaultNormalizer } from '@testing-library/react';
 
 function App() {
   const menubarItems = [
@@ -51,6 +53,12 @@ export class BarChart extends React.Component {
     this.testData.datasets[0].data.push(maxInput);
     
     this.options = this.getChartOptions();
+    this.data = this.getData();
+  }
+
+  async getData() {
+    const json = await axios.get('https://localhost:42426/trackerapi')
+    console.log(json.data)
   }
 
   getChartOptions() {
