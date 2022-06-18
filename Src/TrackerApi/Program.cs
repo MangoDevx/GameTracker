@@ -49,7 +49,6 @@ app.MapGet("/trackerapi", () =>
     connection.Close();
     var json = JsonSerializer.Serialize(data);
     data.Clear();
-    Console.WriteLine("Returning json");
     return json;
 }).WithName("GetTrackedData");
 

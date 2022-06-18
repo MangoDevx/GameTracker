@@ -35,7 +35,7 @@ export function UsageStatistics(props) {
 
     }, []);
     return(
-        <Chart type={props.chartType} data={chartData} options={{height: 100, maintainAspectRatio: false, aspectRatio: 1, plugins: {legend: {position: 'bottom'}}}} />
+        <Chart type={props.chartType} data={chartData} options={{maintainAspectRatio: false, aspectRatio: 1, plugins: {legend: {position: 'bottom'}}}} />
     )    
 }
 

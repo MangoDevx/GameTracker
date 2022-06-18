@@ -23,11 +23,11 @@ function App() {
     <div className="App">
       <Menubar model={menubarItems}/>
       <div className='App-header'>
-        <div class="grid">
-          <div class="col-4">
+        <div className="grid justify-content-center">
+          <div className="col-6">
             <UsageStatistics chartType="bar"/>
           </div>
-          <div class="col-4">
+          <div className="col-6">
             <UsageStatistics chartType="pie"/>
           </div>
         </div>
