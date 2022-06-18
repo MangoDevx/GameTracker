@@ -1,6 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import axios from 'axios';
 
 import './App.css';
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
@@ -9,10 +7,9 @@ import "primeicons/primeicons.css";                                //icons
 import "/node_modules/primeflex/primeflex.css";
 
 import { Menubar } from 'primereact/menubar';
-import { Chart } from 'primereact/chart'; 
 
 import 'primereact/resources/themes/bootstrap4-light-blue/theme.css';
-import { getDefaultNormalizer } from '@testing-library/react';
+import { UsageStatistics } from './UsageStatistics';
 
 function App() {
   const menubarItems = [
@@ -26,57 +23,17 @@ function App() {
     <div className="App">
       <Menubar model={menubarItems}/>
       <div className='App-header'>
-        <div className="grid Chart-display">
-        <BarChart />
+        <div class="grid">
+          <div class="col-4">
+            <UsageStatistics chartType="bar"/>
+          </div>
+          <div class="col-4">
+            <UsageStatistics chartType="pie"/>
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-export class BarChart extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.testData = {
-      labels: ["One", "Two", "Three", "Four", "Five"],
-      datasets: [
-        {
-          label: "Hours Played",
-          backgroundColor: '#42A5F5',
-          data: [30, 10, 20, 50, 40]
-        }
-      ]
-    };
-
-    const maxInput = Math.max(...this.testData.datasets[0].data) + 10;
-    this.testData.datasets[0].data.push(maxInput);
-    
-    this.options = this.getChartOptions();
-    this.data = this.getData();
-  }
-
-  async getData() {
-    const json = await axios.get('https://localhost:42426/trackerapi')
-    console.log(json.data)
-  }
-
-  getChartOptions() {
-    let options = {
-      maintainAspectRatio: false,
-      aspectRatio: 1,
-    }
-    return options;
-  }
-
-  render() {
-    return (
-      <div className='chart'>
-        <h4>Bar Chart</h4>
-        <Chart type='bar' data={this.testData} options={this.options} />
-      </div>
-    )
-  }
 }
 
 export default App;
