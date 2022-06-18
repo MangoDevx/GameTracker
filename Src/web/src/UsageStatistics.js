@@ -2,7 +2,7 @@ import React from 'react';
 import { Chart } from 'primereact/chart'; 
 
 function useStatisticsData(items) {
-    const data = React.useMemo (() => ({
+    return React.useMemo (() => ({
         labels: items.map(i => i.Name),
         datasets: [
             {
@@ -12,9 +12,6 @@ function useStatisticsData(items) {
             }
         ]
     }), [items]);
-
-    data.datasets[0].data.push(Math.max(data.datasets[0].data) + 0.5);
-    return data;
 }
 
 export function UsageStatistics(props) {
