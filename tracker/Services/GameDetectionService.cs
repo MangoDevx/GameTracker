@@ -25,6 +25,7 @@ public class GameDetectionService
     {
         await GetSteamGamesAsync();
         _logger.LogInformation(">> Automatic Steam detection completed.");
+        // TODO: Epic game detection
     }
 
     private async Task GetSteamGamesAsync()
