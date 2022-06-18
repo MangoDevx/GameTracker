@@ -113,7 +113,7 @@ public class GameDetectionService
                         biggestFile = (filePath, size);
                 }
 
-                if (string.IsNullOrEmpty(biggestFile.Item1))
+                if (string.IsNullOrEmpty(biggestFile.Item1) || _context.Blacklists.Any(x => x.Path == biggestFile.Item1))
                     continue;
 
                 var gameName = biggestFile.Item1.Split('\\').Last();
