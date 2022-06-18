@@ -19,7 +19,8 @@ public class ConsoleService : BackgroundService
         "Delete Process%Removes a process to track, may be readded automatically",
         "List Processes%Lists the processes that will be tracked when they are running",
         "Blacklist Menu%Displays the blacklist menu to add, remove, or list blacklist applications",
-        "Hide App%Hides the application in the background. To close it end tracker.exe in Task Manager"
+        "Hide App%Hides the application in the background. To close it end tracker.exe in Task Manager",
+        "Exit App%Safely exits the application and kills any process that may be in the background. (RECOMMENDED)"
     };
 
     private readonly string[] _blOptions =
@@ -119,6 +120,9 @@ public class ConsoleService : BackgroundService
                     break;
                 case 6:
                     running = !HideApp(token);
+                    break;
+                case 7:
+                    ExitApp();
                     break;
                 default:
                     break;
@@ -351,6 +355,18 @@ public class ConsoleService : BackgroundService
         var window = Pinvoke.Pinvoke.GetConsoleWindow();
         Pinvoke.Pinvoke.ShowWindow(window, 0);
         return true;
+    }
+
+    private void ExitApp()
+    {
+        AnsiConsole.Cursor.Hide();
+        Console.Clear();
+        Console.WriteLine();
+        AnsiConsole.Write(new Rule("[deepSkyBlue3]Exit Application[/]"));
+        Console.WriteLine();
+
+        AnsiConsole.Markup("Please press [red]Ctrl+C[/] at the same time. Then press enter");
+        Console.ReadKey();
     }
 
     private async Task BlacklistMenu(CancellationToken token)
