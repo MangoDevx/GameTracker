@@ -1,0 +1,28 @@
+.App {
+  text-align: center;
+  background-color: #393E46;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #222831;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.p-menubar {
+  background-color: #393E46 !important;
+}
+
+.p-menuitem-text, .p-menuitem-icon {
+  color: #EEEEEE !important;
+}
