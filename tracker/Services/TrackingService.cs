@@ -61,7 +61,7 @@ public class TrackingService : BackgroundService
                 trackedProcess.LastAccessed = DateTime.UtcNow.ToString("o");
                 trackedProcess.MinutesRan += 1;
                 _trackedProcesses.Add(trackedProcess.Path!.ToLower());
-                _logger.LogInformation("Added minute to {name}", trackedProcess.Name ?? "NA");
+                //_logger.LogInformation("Added minute to {name}", trackedProcess.Name ?? "NA");
 
                 if (!dbUpdated)
                     dbUpdated = true;

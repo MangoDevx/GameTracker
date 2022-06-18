@@ -186,7 +186,7 @@ public class ConsoleService : BackgroundService
                 return;
 
             var context = _provider.GetRequiredService<DataContext>();
-            if (context.Processes.Any(x => x.Name == inputPath) && context.Processes.Any(x => x.Path == inputPath))
+            if (!context.Processes.Any(x => x.Name == inputPath) && !context.Processes.Any(x => x.Path != null && x.Path.ToLower() == inputPath.ToLower()))
             {
                 AnsiConsole.Markup("[red]No process was found with that name or path[/]\n\n");
             }
