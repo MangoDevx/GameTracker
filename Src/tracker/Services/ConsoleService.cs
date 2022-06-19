@@ -151,7 +151,7 @@ public class ConsoleService : BackgroundService
 
             inputPath = inputPath.Replace(@"\", "/");
 
-            var gameName = inputPath.Split('/').Last();
+            var gameName = inputPath.Split('/').Last().Split('.').First();
             if (string.IsNullOrEmpty(gameName))
                 gameName = inputPath;
 
