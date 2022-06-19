@@ -4,7 +4,7 @@ GameTracker is a fairly lightweight application that runs on both Windows and Li
 ## Features 
 |Features           | Description                                      |TODO                              |
 |-------------------|--------------------------------------------------|----------------------------------|
-|Automatic Detection|Automatically detects most Steam games            |Add more automatic game support   |
+|Auto Detect        |Automatically detects most Steam games            |Add more automatic game support   |
 |Modern Webpage     |Modern webpage to display the data for you        |                                  |
 |Friendly Menu      |Easy & straightforward to use console based UI    |Complete canellation token support|
 |Whitelist          |Easily add applications that are not auto-detected|                                  |
