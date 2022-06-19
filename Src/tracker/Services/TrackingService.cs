@@ -22,7 +22,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
+        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
         await Task.Delay(1, token);
     }
 
@@ -36,34 +36,36 @@ public class TrackingService : BackgroundService
 
             foreach (var process in currentProcesses)
             {
-                string? path;
-                try { path = process.MainModule?.FileName; }
-                catch (Exception ex) // Suppress exceptions for processes that have protected main modules
+
+                var procName = process.ProcessName;
+                string? path = null;
+                if (string.IsNullOrEmpty(procName))
                 {
-                    if (ex is Win32Exception or InvalidOperationException)
-                        continue;
-                    throw;
+                    try { path = process.MainModule?.FileName; }
+                    catch (Exception ex) // Suppress exceptions for processes that have protected main modules
+                    {
+                        if (ex is not Win32Exception and not InvalidOperationException)
+                            throw;
+                    }
                 }
 
-                if (path is null)
+                path = path?.Replace(@"\", @"/");
+                if (_trackedProcesses.Any(x => x == path || x == procName))
                     continue;
 
-                path = path.Replace(@"\", @"/");
+                var trackedProcess = context.Processes.FirstOrDefault(x => x.Name != null && x.Name.ToLower() == procName.ToLower());
+                if(trackedProcess is null)
+                    if (path is not null)
+                        trackedProcess = context.Processes.FirstOrDefault(x => x.Path != null && x.Path.ToLower() == path.ToLower());
+                    else
+                        continue;
 
-                if (_trackedProcesses.Any(x => x == path.ToLower()))
-                    continue;
-
-                if (!context.Processes.Where(x => x.Path != null).Any(x => x.Path!.ToLower() == path.ToLower()))
-                    continue;
-
-                var trackedProcess = context.Processes.AsQueryable().OrderBy(x => x.Id).Where(x => x.Path != null).FirstOrDefault(x => x.Path!.ToLower() == path.ToLower());
                 if (trackedProcess is null)
                     continue;
 
                 trackedProcess.LastAccessed = DateTime.UtcNow.ToString("o");
                 trackedProcess.MinutesRan += 1;
                 _trackedProcesses.Add(trackedProcess.Path!.ToLower());
-                //_logger.LogInformation("Added minute to {name}", trackedProcess.Name ?? "NA");
 
                 if (!dbUpdated)
                     dbUpdated = true;
