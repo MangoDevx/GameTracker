@@ -48,7 +48,7 @@ public class TrackingService : BackgroundService
                 }
 
                 path = path?.Replace(@"\", @"/");
-                if (_trackedProcesses.Any(x => x == path || x == procName))
+                if (_trackedProcesses.Any(x => x == path?.ToLower() || x == procName))
                     continue;
 
                 var trackedProcess = context.Processes.FirstOrDefault(x => x.Name != null && x.Name.ToLower() == procName.ToLower());
