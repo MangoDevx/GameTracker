@@ -39,14 +39,11 @@ public class TrackingService : BackgroundService
 
                 var procName = process.ProcessName;
                 string? path = null;
-                if (string.IsNullOrEmpty(procName))
+                try { path = process.MainModule?.FileName; }
+                catch (Exception ex) // Suppress exceptions for processes that have protected main modules
                 {
-                    try { path = process.MainModule?.FileName; }
-                    catch (Exception ex) // Suppress exceptions for processes that have protected main modules
-                    {
-                        if (ex is not Win32Exception and not InvalidOperationException)
-                            throw;
-                    }
+                    if (ex is not Win32Exception and not InvalidOperationException)
+                        throw;
                 }
 
                 path = path?.Replace(@"\", @"/");
@@ -54,7 +51,7 @@ public class TrackingService : BackgroundService
                     continue;
 
                 var trackedProcess = context.Processes.FirstOrDefault(x => x.Name != null && x.Name.ToLower() == procName.ToLower());
-                if(trackedProcess is null)
+                if (trackedProcess is null)
                     if (path is not null)
                         trackedProcess = context.Processes.FirstOrDefault(x => x.Path != null && x.Path.ToLower() == path.ToLower());
                     else
