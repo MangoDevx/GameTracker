@@ -118,9 +118,7 @@ public class GameDetectionService
                 if (string.IsNullOrEmpty(biggestFile.Item1) || _context.Blacklists.Any(x => x.Path == biggestFile.Item1))
                     continue;
 
-                var gameName = biggestFile.Item1.Split('\\').Last();
-                if (string.IsNullOrEmpty(gameName))
-                    gameName = biggestFile.Item1.Split('/').Last();
+                var gameName = biggestFile.Item1.Split('/').Last();
                 if (string.IsNullOrEmpty(gameName))
                     gameName = biggestFile.Item1;
 
