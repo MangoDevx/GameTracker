@@ -314,6 +314,7 @@ public class ConsoleService : BackgroundService
         Console.WriteLine();
         AnsiConsole.Write(new Rule("[deepSkyBlue3]List Processes[/]"));
         Console.WriteLine();
+        AnsiConsole.Cursor.Hide();
 
         var context = _provider.GetRequiredService<DataContext>();
         var processes = context.Processes.ToList();
