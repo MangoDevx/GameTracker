@@ -13,6 +13,7 @@ public class TrackingService : BackgroundService
     private readonly ILogger<TrackingService> _logger;
     private Timer _timer = null!;
     private readonly List<string> _trackedProcesses = new();
+    private readonly string[] _blockedProcessNames = { "svchost", "Idle", "System" };
 
     public TrackingService(IServiceProvider provider, ILogger<TrackingService> logger)
     {
@@ -22,7 +23,7 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         await Task.Delay(1, token);
     }
 
@@ -31,7 +32,7 @@ public class TrackingService : BackgroundService
         try
         {
             var context = _provider.GetRequiredService<DataContext>();
-            var currentProcesses = Process.GetProcesses().ToList();
+            var currentProcesses = Process.GetProcesses().Where(x => !_blockedProcessNames.Contains(x.ProcessName)).ToList();
             var dbUpdated = false;
 
             foreach (var process in currentProcesses)
