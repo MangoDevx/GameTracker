@@ -14,8 +14,8 @@ import { UsageStatistics } from './UsageStatistics';
 function App() {
   const menubarItems = [
     {
-      label: 'Graphs',
-      icon: 'pi pi-chart-bar'
+      label: 'Github',
+      icon: 'pi pi-github'
     }
   ]
 
