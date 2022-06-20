@@ -58,7 +58,7 @@ public class TrackingService : BackgroundService
                     else
                         continue;
 
-                if (trackedProcess is null)
+                if (trackedProcess is null || !trackedProcess.Tracking)
                     continue;
 
                 trackedProcess.LastAccessed = DateTime.UtcNow.ToString("o");
