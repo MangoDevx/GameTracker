@@ -11,6 +11,7 @@ function useStatisticsData(items) {
         labels: items.map(i => i.Name),
         datasets: [
             {
+				label: "Apps",
                 backgroundColor: backgroundColors,
                 data: items.map(i => i.MinutesRan / 60)
             }
