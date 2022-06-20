@@ -22,6 +22,8 @@ I'd like to take this project in the direction of a GUI rather than console base
 
 ![social-card](https://github.com/MangoDevx/GameTracker/blob/master/Images/GameTrackerSocialCard.png?raw=true, "Social Card")
 
+## Dependencies
+- You will need Node.js w/ npm if you want to use the webpage
 ## How to run
 - Self Compile:
     - (WINDOWS) If you choose to compile the code yourself, the build needs to follow the same structure as the Windows Build in the Tests folder. 
