@@ -162,7 +162,7 @@ public class ConsoleService : BackgroundService
             }
             else
             {
-                context.Processes.Add(new TrackedProcess { Name = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                context.Processes.Add(new TrackedProcess { Name = gameName, DisplayName = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
                 await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the list.\n"));
             }
@@ -243,7 +243,7 @@ public class ConsoleService : BackgroundService
                         if (newValue.ToLowerInvariant() == "back")
                             continue;
 
-                        process.Name = newValue;
+                        process.DisplayName = newValue;
                         await context.SaveChangesAsync(token);
 
                         if (!inputPath.Contains('\\') && !inputPath.Contains('/'))
@@ -330,7 +330,7 @@ public class ConsoleService : BackgroundService
         table.BorderColor(Color.DeepSkyBlue3);
         table.AddColumns("Name", "Path", "Hours Ran", "Tracking");
         foreach (var process in processes)
-            table.AddRow(process.Name ?? "NA", process.Path ?? "NA", Math.Round(process.MinutesRan / 60.0, 2).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
+            table.AddRow(process.DisplayName ?? "NA", process.Path ?? "NA", Math.Round(process.MinutesRan / 60.0, 2).ToString(CultureInfo.InvariantCulture), process.Tracking.ToString());
         AnsiConsole.Write(table);
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
