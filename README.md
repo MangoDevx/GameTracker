@@ -23,7 +23,14 @@ I'd like to take this project in the direction of a GUI rather than console base
 ![social-card](https://github.com/MangoDevx/GameTracker/blob/master/Images/GameTrackerSocialCard.png?raw=true, "Social Card")
 
 ## How to run
-WIP
+- Self Compile:
+    - (WINDOWS) If you choose to compile the code yourself, the build needs to follow the same structure as the Windows Build in the Tests folder. 
+        - 3 folders next to each other, api, tracker, and web with the appropriate files inside of them
+    - (LINUX) Needs further testing
+- Downloading:
+    - (WINDOWS) You can download the repository then copy the Windows Build folder that is inside Tests anywhere you'd like
+    - (LINUX) Needs further testing
+    - (WIP) You can also find the release in the Releases button of Github
 
 ## Credits
 The menu was created with [Spectre.Console](https://github.com/spectreconsole/spectre.console)
