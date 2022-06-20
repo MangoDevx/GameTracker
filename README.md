@@ -21,5 +21,9 @@ I'd like to take this project in the direction of a GUI rather than console base
 ![web-view](https://github.com/MangoDevx/GameTracker/blob/master/Images/WebView.png?raw=true, "Web View")
 
 ![social-card](https://github.com/MangoDevx/GameTracker/blob/master/Images/GameTrackerSocialCard.png?raw=true, "Social Card")
+
+## How to run
+WIP
+
 ## Credits
 The menu was created with [Spectre.Console](https://github.com/spectreconsole/spectre.console)
