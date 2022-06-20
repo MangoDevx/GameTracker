@@ -162,7 +162,7 @@ public class ConsoleService : BackgroundService
             }
             else
             {
-                context.Processes.Add(new TrackedProcess { Name = gameName, DisplayName = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTime.UtcNow.ToString("o"), Tracking = true });
+                context.Processes.Add(new TrackedProcess { Name = gameName, DisplayName = gameName, Path = inputPath, MinutesRan = 0, LastAccessed = DateTimeOffset.UtcNow.ToString("o"), Tracking = true });
                 await context.SaveChangesAsync(token);
                 AnsiConsole.Write(new Markup($"Successfully added [springgreen3]{gameName}[/] to the list.\n"));
             }

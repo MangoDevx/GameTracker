@@ -61,7 +61,7 @@ public class TrackingService : BackgroundService
                 if (trackedProcess is null || !trackedProcess.Tracking)
                     continue;
 
-                trackedProcess.LastAccessed = DateTime.UtcNow.ToString("o");
+                trackedProcess.LastAccessed = DateTimeOffset.UtcNow.ToString("o");
                 trackedProcess.MinutesRan += 1;
                 _trackedProcesses.Add(trackedProcess.Path!.ToLower());
 
