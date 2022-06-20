@@ -246,8 +246,6 @@ public class ConsoleService : BackgroundService
                         process.DisplayName = newValue;
                         await context.SaveChangesAsync(token);
 
-                        if (!inputPath.Contains('\\') && !inputPath.Contains('/'))
-                            inputPath = newValue;
                         AnsiConsole.Write(new Markup($"Successfully updated [springgreen3]{process.Name}[/]'s name.\n\n"));
                     }
 
