@@ -33,12 +33,12 @@ var data = new List<TrackerData>();
 app.MapGet("/trackerapi", () =>
 {
     var connection = new SqliteConnection(app.Configuration.GetConnectionString("Sqlite"));
-    var sqlCommand = new SqliteCommand("SELECT Name, MinutesRan FROM Processes WHERE (Tracking > 0) AND (MinutesRan > 0) ORDER BY Name ASC;", connection);
+    var sqlCommand = new SqliteCommand("SELECT DisplayName, MinutesRan FROM Processes WHERE (Tracking > 0) AND (MinutesRan > 0) ORDER BY Name ASC;", connection);
     connection.Open();
     var reader = sqlCommand.ExecuteReader();
     while (reader.Read())
     {
-        var name = reader["Name"] as string;
+        var name = reader["DisplayName"] as string;
         var minRanString = reader["MinutesRan"].ToString();
         if (!double.TryParse(minRanString, out var minRan) || name is null)
             continue;

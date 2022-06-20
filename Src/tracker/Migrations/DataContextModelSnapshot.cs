@@ -39,6 +39,9 @@ namespace tracker.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("LastAccessed")
                         .HasColumnType("TEXT");
 

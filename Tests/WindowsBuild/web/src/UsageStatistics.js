@@ -8,7 +8,7 @@ const backgroundColors = [
 
 function useStatisticsData(items) {
     return React.useMemo (() => ({
-        labels: items.map(i => i.Name),
+        labels: items.map(i => i.DisplayName),
         datasets: [
             {
                 backgroundColor: backgroundColors,
