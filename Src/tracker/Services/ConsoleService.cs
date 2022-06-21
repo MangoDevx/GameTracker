@@ -82,10 +82,20 @@ public class ConsoleService : BackgroundService
             AnsiConsole.Write(table);
             Console.WriteLine();
 
+            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var optionHint = "(";
-            for (var i = 0; i < _options.Length - 1; i++)
-                optionHint += i + 1 + ", ";
-            optionHint += $"{_options.Length})";
+            if (isWindows)
+            {
+                for (var i = 0; i < _options.Length - 1; i++)
+                    optionHint += i + 1 + ", ";
+                optionHint += $"{_options.Length})";
+            }
+            else
+            {
+                for (var i = 0; i < _options.Length - 2; i++)
+                    optionHint += i + 1 + ", ";
+                optionHint += $"{_options.Length-1})";
+            }
 
             var selectedOption = 0;
             while (!token.IsCancellationRequested)

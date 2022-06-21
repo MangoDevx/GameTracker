@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -16,8 +17,8 @@ if (!File.Exists("../api/TrackerApi.exe") && !File.Exists("../api/TrackerApi.dll
 }
 else
 {
-    var isExe = File.Exists("../api/TrackerApi.exe");
-    if (isExe)
+    var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    if (isWindows)
     {
         var processInfo = new ProcessStartInfo("../api/TrackerApi.exe")
         {
@@ -26,7 +27,6 @@ else
             UseShellExecute = false
         };
         proc = Process.Start(processInfo);
-        Console.WriteLine("Api hidden. To manually kill it go to task manager and kill TrackerApi.exe. Exit App command should also take care of it.");
     }
     else
     {
@@ -40,7 +40,6 @@ else
     }
 }
 #endif
-
 using var host = Host.CreateDefaultBuilder(args)
     .ConfigureLogging((_, logging) =>
     {
