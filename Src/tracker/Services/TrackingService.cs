@@ -11,7 +11,7 @@ public class TrackingService : BackgroundService
 {
     private readonly IServiceProvider _provider;
     private readonly ILogger<TrackingService> _logger;
-    private Timer _timer = null!;
+    private readonly PeriodicTimer _timer = new(TimeSpan.FromMinutes(1));
     private readonly List<string> _trackedProcesses = new();
     private readonly string[] _blockedProcessNames = { "svchost", "Idle", "System" };
 
@@ -23,11 +23,13 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        _timer = new Timer(_ => TrackProcesses(token), null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
-        await Task.Delay(1, token);
+        while (await _timer.WaitForNextTickAsync(token) && !token.IsCancellationRequested)
+        {
+            await TrackProcesses(token);
+        }
     }
 
-    public async void TrackProcesses(CancellationToken token)
+    public async Task TrackProcesses(CancellationToken token)
     {
         try
         {
