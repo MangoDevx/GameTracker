@@ -45,7 +45,7 @@ class Program
         app.MapGet("/trackerapi", () =>
         {
             var connection = new SqliteConnection(app.Configuration.GetConnectionString("Sqlite"));
-            var sqlCommand = new SqliteCommand("SELECT DisplayName, MinutesRan FROM Processes WHERE (Tracking > 0) AND (MinutesRan > 0) ORDER BY Name ASC;", connection);
+            var sqlCommand = new SqliteCommand("SELECT DisplayName, MinutesRan FROM Processes WHERE (Tracking > 0) AND (MinutesRan > 0) ORDER BY DisplayName ASC;", connection);
             connection.Open();
             var reader = sqlCommand.ExecuteReader();
             while (reader.Read())
