@@ -23,9 +23,16 @@ public class TrackingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        while (await _timer.WaitForNextTickAsync(token) && !token.IsCancellationRequested)
+        try
         {
-            await TrackProcesses(token);
+            while (await _timer.WaitForNextTickAsync(token) && !token.IsCancellationRequested)
+            {
+                await TrackProcesses(token);
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            // Swallow
         }
     }
 
