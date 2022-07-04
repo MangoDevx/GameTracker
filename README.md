@@ -1,5 +1,6 @@
 # ![](https://github.com/MangoDevx/GameTracker/blob/master/Images/GTLogo.png?raw=true) GameTracker
-GameTracker is a fairly lightweight application that runs on both Windows and Linux which will show you how many hours you play your games or use applications for and display them in charted data.
+GameTracker is a fairly lightweight application which will show you how many hours you play your games or use applications for and display them in charted data.
+The project was built with cross-platform capabilities, but it is untested. If you'd like to try to compile it for cross-platform let me know!
 
 ## Features 
 |Features           | Description                                      |TODO                           |
@@ -28,10 +29,8 @@ I'd like to take this project in the direction of a GUI rather than console base
 - Self Compile:
     - (WINDOWS) If you choose to compile the code yourself, the build needs to follow the same structure as the Windows Build in the Tests folder. 
         - 3 folders next to each other, api, tracker, and web with the appropriate files inside of them
-    - (LINUX) Needs further testing
 - Downloading:
     - (WINDOWS) You can download the repository then copy the Windows Build folder that is inside Tests anywhere you'd like
-    - (LINUX) Needs further testing
     - (WIP) You can also find the release in the Releases button of Github
 
 ## Credits
