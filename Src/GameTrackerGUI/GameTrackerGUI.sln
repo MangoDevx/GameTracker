@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameTrackerGUI", "GameTrackerGUI.csproj", "{B752002B-79BD-4EF3-8C0F-A8E9B3365C8A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B752002B-79BD-4EF3-8C0F-A8E9B3365C8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B752002B-79BD-4EF3-8C0F-A8E9B3365C8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B752002B-79BD-4EF3-8C0F-A8E9B3365C8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B752002B-79BD-4EF3-8C0F-A8E9B3365C8A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

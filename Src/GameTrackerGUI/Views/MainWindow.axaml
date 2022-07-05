@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:GameTrackerGUI.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="GameTrackerGUI.Views.MainWindow"
+        Icon="/Assets/GTLogo.ico"
+        Title="GameTrackerGUI"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        Width="800"
+        Height="500"
+        WindowStartupLocation="CenterScreen">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial
+                    BackgroundSource="Digger"
+                    TintColor="Black"
+                    TintOpacity="1"
+                    MaterialOpacity="0.65" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+        
+        <TextBlock Text="―― GAME TRACKER ――" FontSize="20" Foreground="#6bba62" HorizontalAlignment="Center"
+                   Padding="0 50 0 0"/>
+
+        <WrapPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+            <Button CornerRadius="10" Foreground="White" Background="Transparent" Height="100" Width="100" Command="{Binding AddGameCommand}">
+                <Border CornerRadius="10" ClipToBounds="True" Height="100" Width="100" BorderBrush="#89A1ED" BorderThickness="2">
+                    <Panel Background="Transparent">
+                        <PathIcon Height="35" Width="35" Data="{StaticResource add_regular}" />
+                        <ToolTip Tip="Add a game" Placement="Pointer" HorizontalContentAlignment="Center" />
+                    </Panel>
+                </Border>
+            </Button>
+
+            <Button CornerRadius="10" Foreground="White" Background="Transparent" Height="100" Width="100"
+                    Margin="20 0 0 0">
+                <Border CornerRadius="10" ClipToBounds="True" Height="100" Width="100" BorderBrush="#89A1ED" BorderThickness="2">
+                    <Panel Background="Transparent">
+                        <PathIcon Height="35" Width="35" Data="{StaticResource edit_regular}" />
+                        <ToolTip Tip="Edit a game" Placement="Pointer" HorizontalContentAlignment="Center" />
+                    </Panel>
+                </Border>
+            </Button>
+
+            <Button CornerRadius="10" Foreground="White" Background="Transparent" Height="100" Width="100"
+                    Margin="20 0 0 0">
+                <Border CornerRadius="10" ClipToBounds="True" Height="100" Width="100" BorderBrush="#89A1ED" BorderThickness="2">
+                    <Panel Background="Transparent">
+                        <PathIcon Height="35" Width="35" Data="{StaticResource remove_regular}" />
+                        <ToolTip Tip="Remove a game" Placement="Pointer" HorizontalContentAlignment="Center" />
+                    </Panel>
+                </Border>
+            </Button>
+
+            <Button CornerRadius="10" Foreground="White" Background="Transparent" Height="100" Width="100"
+                    Margin="20 0 0 0">
+                <Border CornerRadius="10" ClipToBounds="True" Height="100" Width="100" BorderBrush="#89A1ED" BorderThickness="2">
+                    <Panel Background="Transparent">
+                        <PathIcon Height="35" Width="35" Data="{StaticResource text_bullet_list_square_regular}" />
+                        <ToolTip Tip="View game list" Placement="Pointer" HorizontalContentAlignment="Center" />
+                    </Panel>
+                </Border>
+            </Button>
+        </WrapPanel>
+    </Panel>
+
+</Window>
